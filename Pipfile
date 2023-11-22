@@ -14,6 +14,11 @@ build = "*"
 sphinx-rtd-theme = "*"
 exceptiongroup = "*"
 pytest-mock = "*"
+types-requests = "*"
+isort = "*"
+flake8 = "*"
+flake8-pyproject = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.10"

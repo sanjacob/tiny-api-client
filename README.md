@@ -12,11 +12,11 @@ class MyAPIClient:
 	@get('/users/{user_id}')
 	def find_user(self, response):
 		return response
-	
+
 	@post('/notes')
 	def create_note(self, response):
 		return response
-	
+
 	@delete('/notes/{note_id}/attachment/{attachment_id}', version=3)
 	def delete_note_attachment(self, response):
 		return response
