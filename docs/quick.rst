@@ -36,7 +36,7 @@ That's it, you are done creating your API client
         client = MyAPIClient()
         client.fetch_comments(user_id='me') # parameters are optional
         [{'id': '001', 'content': 'This is my first comment'}, ...]
-        
+
         client.fetch_comments(user_id='me', comment_id='001')
         {'id': '001', 'content': 'This is my first comment'}
 
@@ -126,7 +126,7 @@ Any keyword parameters included in either the endpoint declaration or the call t
             for chunk in r.iter_content(chunk_size=1024):
                 # Handle file content
 
-        
+
         >>> client.download_file(file_hash='...', auth=..., headers=...) # passed at runtime
 
 For the full list of accepted parameters, see the `requests`_ documentation.
@@ -136,22 +136,23 @@ For the full list of accepted parameters, see the `requests`_ documentation.
 
 - Dynamic API URL
 
-Don't know the URL at import time? No problem, define a `_url` property at runtime instead
+Don't know the URL at import time? No problem, define a `_url` member at runtime instead.
+
+.. note::
+
+        Please do not use a `@property` for this
 
 ::
 
         @api_client()
         class ContinentAPIClient:
         def __init__(api_url: str):
-            self._api_url = api_url
-    
+            self._url = api_url
+
             @get("/countries")
             def fetch_countries(self, response):
                 return response
 
-            @property
-            def _url(self):
-                return _api_url
 
 >>> africa = ContinentAPIClient("https://africa.example.org/api")
 >>> europe = ContinentAPIClient("https://europe.example.org/api")
@@ -185,7 +186,7 @@ If the server responds with the result inside a dictionary, you can directly ret
         @get("/quotes/{quote_id}", results_key='results')
         def fetch_quotes(self, response) -> list[str]:
             return response
-        
+
         >>> client.fetch_quote(quote_id=...) # Server response: {'results': ['An apple a day...', ...]}
         ['An apple a day...', ...]
 
@@ -256,13 +257,17 @@ Session/Cookies
 
 ::
 
-        from http.cookiejar import CookieJar        
+        from http.cookiejar import CookieJar
 
         @api_client('https://example.org')
         class MyAPIClient:
-            @property
-            def _session(self) -> CookieJar | dict:
-                return _cookies
+            def __init__(self, session: CookieJar | dict):
+                self._session = session
+
+
+.. note::
+
+        Please do not use a `@property` for this
 
 
 - Make a request to a different server
