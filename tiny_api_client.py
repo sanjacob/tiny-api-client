@@ -186,7 +186,7 @@ def api_client_method(method: str) -> APIDecoratorFactory:
                     if self.__api_results_key in endpoint_response:
                         endpoint_response = endpoint_response[self.__api_results_key]
                 elif xml:
-                    endpoint_response = ElementTree.fromstring(response.content)
+                    endpoint_response = ElementTree.fromstring(response.text())
 
                 return func(self, endpoint_response, *args)
             return request_wrapper
