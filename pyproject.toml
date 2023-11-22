@@ -22,7 +22,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries"
 ]
-dependencies = ["requests"]
+dependencies = ["requests", "typing_extensions"]
 [tool.setuptools_scm]
 
 [project.optional-dependencies]
