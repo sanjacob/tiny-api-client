@@ -143,7 +143,7 @@ def test_non_json(mocker, example_url):
 def test_non_json_xml(mocker, example_url):
     mocked_requests = mocker.patch('tiny_api_client.requests')
     mock_response = mocker.Mock()
-    mock_response.text.return_value = """
+    mock_response.text = """
     <song>
         <title>First</title>
     </song>
