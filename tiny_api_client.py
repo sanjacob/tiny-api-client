@@ -16,30 +16,30 @@ Basic usage:
 """
 
 # Copyright (C) 2023, Jacob Sánchez Pérez
- 
+
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import abc
 import string
 import logging
-import requests
+from typing import Any, TypeVar, Concatenate
 from functools import wraps
 from xml.etree import ElementTree
-from dataclasses import _set_new_attribute
-
 from collections.abc import Callable
+
+import requests
+from typing_extensions import Protocol, ParamSpec
 
 __all__ = ['api_client', 'get', 'post', 'put', 'patch', 'delete', 'api_client_method']
 
@@ -66,7 +66,24 @@ class APINoURLError(APIClientError):
     pass
 
 
-def api_client_method(method: str):
+APIEndpointP = ParamSpec('APIEndpointP')
+APIEndpointT = TypeVar('APIEndpointT')
+
+APIEndpointHandler = Callable[APIEndpointP, APIEndpointT]
+APIEndpoint = Callable[Concatenate[Any, APIEndpointP], APIEndpointT]
+
+
+class APIDecoratorFactory(Protocol):
+    def __call__(self, endpoint: str, *, version: int = 1, use_api: bool = True,
+                 json: bool = True, xml: bool = False, **g_kwargs) -> Callable[
+                     ...,
+                     Callable[
+                         [Callable[APIEndpointP, APIEndpointT]],
+                         Callable[Concatenate[Any, APIEndpointP], APIEndpointT]
+                     ]]: ...
+
+
+def api_client_method(method: str) -> APIDecoratorFactory:
     """Construct an API client decorator function for an specific HTTP method
 
     Basic usage:
@@ -80,11 +97,14 @@ def api_client_method(method: str):
     """
 
     class dict_safe(dict):
-        def __missing__(self, key):
+        def __missing__(self, key: Any) -> str:
             return ''
 
     def request(endpoint: str, *, version: int = 1, use_api: bool = True,
-                json: bool = True, xml: bool = False, **g_kwargs) -> Callable[[Callable], Callable]:
+                json: bool = True, xml: bool = False, **g_kwargs) -> Callable[
+                        [Callable[APIEndpointP, APIEndpointT]],
+                        Callable[Concatenate[Any, APIEndpointP], APIEndpointT]
+                ]:
         """Declare an endpoint with a given HTTP method
 
         Basic usage:
@@ -98,18 +118,20 @@ def api_client_method(method: str):
 
         :param string endpoint: Endpoint to make call to, including placeholders
         :param int version: API version to which the endpoint belongs
-        :param bool json: If false, returns raw requests response, otherwise returns JSON Object
+        :param bool json: Togggles JSON parsing of response before returning
         :param dict g_kwargs: Any extra keyword argument will be passed to requests
         """
 
-        def request_decorator(func: Callable) -> Callable:
+        def request_decorator(func: Callable[APIEndpointP, APIEndpointT]) -> Callable[
+                Concatenate[Any, APIEndpointP], APIEndpointT]:
             """Return wrapped function.
 
             :param function func: Function to decorate
             """
 
             @wraps(func)
-            def request_wrapper(self, *args, **kwargs):
+            def request_wrapper(self, /, *args: APIEndpointP.args,
+                                **kwargs: APIEndpointP.kwargs) -> APIEndpointT:
                 """Wrap function in REST API call.
 
                 :param list args: Passed to the function being wrapped
@@ -120,7 +142,7 @@ def api_client_method(method: str):
                 # Remove parameters meant for endpoint formatting
                 formatter = string.Formatter()
                 for x in formatter.parse(endpoint):
-                    kwargs.pop(x[1], None)
+                    kwargs.pop(x[1], None)  # type: ignore
 
                 if self._url is None:
                     raise APINoURLError()
@@ -140,49 +162,60 @@ def api_client_method(method: str):
                 if hasattr(self, '_session'):
                     cookies = self._session
 
-                response = requests.request(method, endpoint_format, timeout=self.__api_timeout,
-                                            cookies=cookies, **kwargs, **g_kwargs)
-                if json:
-                    response = response.json()
+                # This line generates some errors due to kwargs being passed to
+                # the non-kwarg-ed requests.request method
+                response = requests.request(
+                    method, endpoint_format, timeout=self.__api_timeout,
+                    cookies=cookies, **kwargs, **g_kwargs)  # type: ignore
+                endpoint_response: Any = response
 
-                    if not response:
+                if json:
+                    endpoint_response = response.json()
+
+                    if not endpoint_response:
                         raise APIEmptyResponseError()
-                    elif self.__api_status_key in response:
-                        _logger.warn(f"Code {response[self.__api_status_key]} on request to {endpoint_format}")
+                    elif self.__api_status_key in endpoint_response:
+                        status_code = endpoint_response[self.__api_status_key]
+                        _logger.warning(f"Code {status_code} in {endpoint_format}")
 
                         if self.__api_status_handler is not None:
-                            self.__api_status_handler(response[self.__api_status_key])
+                            self.__api_status_handler(status_code)
                         else:
                             raise APIStatusError('Server responded with an error code')
 
-                    if self.__api_results_key in response:
-                        response = response[self.__api_results_key] 
+                    if self.__api_results_key in endpoint_response:
+                        endpoint_response = endpoint_response[self.__api_results_key]
                 elif xml:
-                    response = ElementTree.fromstring(response.content)
+                    endpoint_response = ElementTree.fromstring(response.content)
 
-                return func(self, response, *args)
+                return func(self, endpoint_response, *args)
             return request_wrapper
         return request_decorator
     return request
 
 
-def api_client(url: str | None = None, /, *, timeout: int = None, status_handler: Callable = None,
-               status_key: str = 'status', results_key: str = 'results'):
+APIClient = TypeVar('APIClient', bound=type[Any])
+APIStatusHandler = Callable[[Any], None] | None
+
+
+def api_client(url: str | None = None, /, *, timeout: int | None = None,
+               status_handler: APIStatusHandler = None, status_key: str = 'status',
+               results_key: str = 'results') -> Callable[[APIClient], APIClient]:
     """Annotate a class to use the api client method decorators
 
     Basic usage:
         >>> @api_client("https://example.org/api")
         >>> class MyClient:
         ...     ...
-    
-    :param string url: The URL of the API root which can include placeholders (see docs) 
+
+    :param string url: The URL of the API root which can include placeholders (see docs)
     :param int timeout: The timeout to use in seconds
     :param Callable status_handler: A function that handles error codes from the API
     :param string status_key: The key of the API response that contains the status code
-    :param string results_key: The key of the API response that contains a list of results
+    :param string results_key: The key of the API response that contains the results
     """
 
-    def wrap(cls):
+    def wrap(cls: APIClient) -> APIClient:
         cls._url = url
         cls.__api_timeout = timeout
         cls.__api_status_handler = status_handler
