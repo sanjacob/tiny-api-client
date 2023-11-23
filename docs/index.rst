@@ -24,6 +24,10 @@ The short and sweet way to create an API client
         >>> client.get_posts() # route parameters are optional
 
 
+Tiny API Client is a wrapper for `requests` that enables you to succintly write API clients
+without much effort. Calls on each instance of a client class will share a `requests.Session`
+with cookie preservation and improved performance due to request pooling.
+
 To get started, see the :ref:`basics` first.
 
 .. toctree::

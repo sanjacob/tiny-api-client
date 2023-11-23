@@ -44,6 +44,7 @@ from typing_extensions import Protocol, ParamSpec
 __all__ = ['api_client', 'get', 'post', 'put', 'patch', 'delete', 'api_client_method']
 
 _logger = logging.getLogger(__name__)
+_logger.addHandler(logging.NullHandler())
 
 
 class APIClientError(Exception):
@@ -118,7 +119,7 @@ def api_client_method(method: str) -> APIDecoratorFactory:
 
         :param string endpoint: Endpoint to make call to, including placeholders
         :param int version: API version to which the endpoint belongs
-        :param bool json: Togggles JSON parsing of response before returning
+        :param bool json: Toggles JSON parsing of response before returning
         :param dict g_kwargs: Any extra keyword argument will be passed to requests
         """
 
@@ -137,6 +138,13 @@ def api_client_method(method: str) -> APIDecoratorFactory:
                 :param list args: Passed to the function being wrapped
                 :param dict kwargs: Any kwargs will be passed to requests
                 """
+                if self._url is None:
+                    raise APINoURLError()
+
+                if not hasattr(self, '__client_session'):
+                    _logger.info("Creating new requests session")
+                    self.__client_session = requests.Session()
+
                 param_endpoint = endpoint.format_map(dict_safe(kwargs))
 
                 # Remove parameters meant for endpoint formatting
@@ -144,11 +152,7 @@ def api_client_method(method: str) -> APIDecoratorFactory:
                 for x in formatter.parse(endpoint):
                     kwargs.pop(x[1], None)  # type: ignore
 
-                if self._url is None:
-                    raise APINoURLError()
-
                 url = self._url.format(version=version)
-
                 endpoint_format = f"{url}{param_endpoint}"
 
                 if not use_api:
@@ -159,12 +163,15 @@ def api_client_method(method: str) -> APIDecoratorFactory:
                 _logger.debug(f"Making request to {endpoint_format}")
 
                 cookies = None
-                if hasattr(self, '_session'):
+                if hasattr(self, '_cookies'):
+                    cookies = self._cookies
+                elif hasattr(self, '_session'):
+                    _logger.warning("_session is deprecated. Use _cookies instead.")
                     cookies = self._session
 
                 # This line generates some errors due to kwargs being passed to
                 # the non-kwarg-ed requests.request method
-                response = requests.request(
+                response = self.__client_session.request(
                     method, endpoint_format, timeout=self.__api_timeout,
                     cookies=cookies, **kwargs, **g_kwargs)  # type: ignore
                 endpoint_response: Any = response

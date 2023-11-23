@@ -46,8 +46,12 @@ def mock_requests(mocker, example_note):
     mock_response = mocker.Mock()
     mock_response.json.return_value = example_note
 
-    mocked_requests.request.return_value = mock_response
+    mocked_requests.Session().request.return_value = mock_response
     return mocked_requests
+
+
+def get_request_fn(mock_requests):
+    return mock_requests.Session().request
 
 
 def test_get(mock_requests, example_url, example_note):
@@ -59,7 +63,7 @@ def test_get(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note
@@ -74,7 +78,7 @@ def test_post(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.post_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'POST', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note
@@ -89,7 +93,7 @@ def test_put(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.put_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'PUT', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note
@@ -104,7 +108,7 @@ def test_patch(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.patch_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'PATCH', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note
@@ -119,15 +123,15 @@ def test_delete(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.delete_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'DELETE', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note
 
 
 def test_non_json(mocker, example_url):
-    mocked_requests = mocker.patch('tiny_api_client.requests')
-    mocked_requests.request.return_value = 'This is a plaintext message'
+    mock_requests = mocker.patch('tiny_api_client.requests')
+    get_request_fn(mock_requests).return_value = 'This is a plaintext message'
 
     @api_client(example_url)
     class MyClient:
@@ -141,7 +145,7 @@ def test_non_json(mocker, example_url):
 
 
 def test_non_json_xml(mocker, example_url):
-    mocked_requests = mocker.patch('tiny_api_client.requests')
+    mock_requests = mocker.patch('tiny_api_client.requests')
     mock_response = mocker.Mock()
     mock_response.text = """
     <song>
@@ -149,7 +153,7 @@ def test_non_json_xml(mocker, example_url):
     </song>
     """
 
-    mocked_requests.request.return_value = mock_response
+    get_request_fn(mock_requests).return_value = mock_response
 
     @api_client(example_url)
     class MyClient:
@@ -172,12 +176,12 @@ def test_optional_parameter(mock_requests, example_url):
 
     client = MyClient()
     client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
 
     client.get_my_endpoint(optional_id='MY_OPTIONAL_ID')
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint/MY_OPTIONAL_ID', timeout=None, cookies=None
     )
 
@@ -191,7 +195,7 @@ def test_multiple_route_parameters(mock_requests, example_url):
 
     client = MyClient()
     client.get_my_endpoint(first_id='1', second_id='22', third_id='333')
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint/1/child/22/child/333',
         timeout=None, cookies=None
     )
@@ -219,7 +223,7 @@ def test_extra_requests_parameter(mock_requests, example_url):
 
     client = MyClient()
     client.get_my_endpoint(my_extra_param='hello world')
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None,
         my_extra_param='hello world'
     )
@@ -234,7 +238,7 @@ def test_extra_requests_parameter_endpoint_declaration(mock_requests, example_ur
 
     client = MyClient()
     client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None,
         my_extra_param='hello world'
     )
@@ -249,18 +253,18 @@ def test_unpacking(mock_requests, example_url, example_note):
 
     client = MyClient()
     r = client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
     assert r == example_note['content']
 
 
-def test_empty_response_error(mocker, mock_requests, example_url):
-    mocked_requests = mocker.patch('tiny_api_client.requests')
+def test_empty_response_error(mocker, example_url):
+    mock_requests = mocker.patch('tiny_api_client.requests')
     mock_response = mocker.Mock()
     mock_response.json.return_value = ""
 
-    mocked_requests.request.return_value = mock_response
+    get_request_fn(mock_requests).return_value = mock_response
 
     @api_client(example_url)
     class MyClient:
@@ -290,15 +294,15 @@ def test_endpoint_versions(mock_requests, example_url, example_note):
 
     client = MyClient()
     client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/v3/my-endpoint', timeout=None, cookies=None
     )
     client.post_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'POST', f'{example_url}/v2/my-endpoint', timeout=None, cookies=None
     )
     client.put_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'PUT', f'{example_url}/v1/my-endpoint', timeout=None, cookies=None
     )
 
@@ -312,7 +316,7 @@ def test_class_decorator_parameter_timeout(mock_requests, example_url, example_t
 
     client = MyClient()
     client.get_my_endpoint()
-    mock_requests.request.assert_called_with(
+    get_request_fn(mock_requests).assert_called_with(
         'GET', f'{example_url}/my-endpoint', timeout=example_timeout, cookies=None
     )
 
@@ -362,7 +366,7 @@ def test_deferred_url_parameter(mock_requests, example_url, example_note):
     r = client.fetch_my_endpoint()
 
     assert r == example_note
-    mock_requests.request.assert_called_once_with(
+    get_request_fn(mock_requests).assert_called_once_with(
         'GET', f'{example_url}/my-endpoint', timeout=None, cookies=None
     )
 
@@ -382,7 +386,7 @@ def test_session_member(mock_requests, example_url, example_note):
     r = client.fetch_my_endpoint()
 
     assert r == example_note
-    mock_requests.request.assert_called_once_with(
+    get_request_fn(mock_requests).assert_called_once_with(
         'GET', f'{example_url}/my-endpoint', timeout=None,
         cookies=example_session
     )

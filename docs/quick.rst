@@ -253,7 +253,7 @@ throw an `APIStatusError`.
 Session/Cookies
 ---------------
 
-- Define a `_session` property and all requests will include this cookie jar
+- Define a `_cookies` property and all requests will include this cookie jar
 
 ::
 
@@ -261,14 +261,18 @@ Session/Cookies
 
         @api_client('https://example.org')
         class MyAPIClient:
-            def __init__(self, session: CookieJar | dict):
-                self._session = session
+            def __init__(self, cookies: CookieJar | dict):
+                self._cookies = cookies
 
 
 .. note::
 
         Please do not use a `@property` for this
 
+
+.. deprecated:: 1.1.0
+
+        self._session (which served the same purpose) is deprecated
 
 - Make a request to a different server
 
@@ -281,3 +285,22 @@ There might come a time when you wish to make a request to a different server wi
             return response
 
         >>> client.fetch_external_resource(external_url="https://example.org/api/...")
+
+
+Reserved Names
+--------------
+
+The following are meant to be set by the developer if needed
+
+- `self._cookies`
+- `self._url`
+
+.. deprecated:: 1.1.0
+
+        self._session
+
+
+Tiny API Client reserves the use of the following member names, where * is a wildcard.
+
+- `self.__client_*`: For client instance attributes
+- `self.__api_*`: For class wide client attributes

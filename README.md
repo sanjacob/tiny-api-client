@@ -33,14 +33,15 @@ class MyAPIClient:
 
 ## Features
 
+- Instance-scoped `requests.Session()` with connection pooling and cookie preservation
 - JSON is king, but XML and raw responses are fine too
 - Endpoints can use GET, POST, PUT, PATCH, DELETE
 - Route parameters are optional
 - Easy integration with your custom API classes
 - Declare endpoints under different API versions
 - Can define the API URL at runtime if not available before
+- Can set a custom CookieJar to pass with all requests
 - Pass along any parameters you would usually pass to requests
-- Can use a session to make all requests
 - Custom JSON status error handling
 
 
