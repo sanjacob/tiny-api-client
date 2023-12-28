@@ -43,6 +43,7 @@ class MyAPIClient:
 - Can set a custom CookieJar to pass with all requests
 - Pass along any parameters you would usually pass to requests
 - Custom JSON status error handling
+- Installable [pytest plugin][pytest-plugin] for easy testing
 
 
 
@@ -65,6 +66,12 @@ You can find the documentation at https://tiny-api-client.readthedocs.io
 [![License: LGPL  v2.1][license-shield]][gnu]
 
 This software is distributed under the [Lesser General Public License v2.1][license], more information available at the [Free Software Foundation][gnu].
+
+
+
+<!-- LINKS -->
+
+[pytest-plugin]: https://github.com/sanjacob/pytest-tiny-api-client
 
 
 

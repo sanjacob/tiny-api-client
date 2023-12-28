@@ -1,7 +1,16 @@
 Quick Guide
 ===========
 
+
+Installation
+------------
+
+::
+
+    pip install tiny-api-client
+
 .. _basics:
+
 
 Basics
 ------

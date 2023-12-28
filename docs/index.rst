@@ -30,11 +30,14 @@ with cookie preservation and improved performance due to request pooling.
 
 To get started, see the :ref:`basics` first.
 
+To learn how to test your own API clients, see the :doc:`testing`.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    quick
+   testing
    api_reference
 
 
