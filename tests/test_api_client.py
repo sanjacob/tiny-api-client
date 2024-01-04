@@ -374,7 +374,7 @@ def test_deferred_url_parameter(mock_requests, example_url, example_note):
 def test_session_member(mock_requests, example_url, example_note):
     @api_client(example_url)
     class MyClient:
-        def __init__(self, session: str):
+        def __init__(self, session: dict[str, str]):
             self._session = session
 
         @get('/my-endpoint')

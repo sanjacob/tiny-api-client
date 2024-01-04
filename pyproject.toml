@@ -34,7 +34,4 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 "Bug Tracker" = "https://github.com/sanjacob/tiny-api-client/issues"
 
 [tool.isort]
-length_sort = true
-
-[tool.flake8]
-max-line-length = 88
+no_sections = true
