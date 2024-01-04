@@ -268,7 +268,6 @@ def api_client_method(method: str) -> DecoratorFactory:
                 :param list args: Passed to the function being wrapped
                 :param dict kwargs: Any kwargs are passed to requests
                 """
-                print(kwargs)
                 response = make_api_call(method, self, endpoint, **kwargs)
                 return func(self, response, *args)
             return request_wrapper
