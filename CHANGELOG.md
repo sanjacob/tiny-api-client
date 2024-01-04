@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-01-04
+
+### Changed
+- Improved type checking support
+- Refactored module to divide work in functions
+
 ## [1.1.0] - 2023-11-23
 
 ### Added
