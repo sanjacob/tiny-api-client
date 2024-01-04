@@ -35,7 +35,7 @@ Usage
 ::
 
     from my_api import MyClient
- 
+
     def test_my_client(api_call):
         # set your fake api response
         api_call.return_value = [{"id": 0, "name": "Mary Jane"}, ...]
@@ -44,6 +44,22 @@ Usage
         users = client.fetch_users()
         # make assertions
         assert users[0].name == "Mary Jane"
+
+
+Using a Context Manager
+-----------------------
+
+In some circumstances it might not be possible to use a function-scoped fixture.
+One example of this is when using the property-based testing library ``hypothesis``.
+It is still possible to use a context manager to temporarily patch the api call.
+
+::
+
+    from unittest.mock import patch
+
+    def test_my_client():
+        with patch('pytest_tiny_api_client._api_call') as api_call:
+            ...
 
 
 Not Using Pytest

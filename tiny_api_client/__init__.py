@@ -248,7 +248,7 @@ def api_client_method(method: str) -> DecoratorFactory:
         :param int version: Replaces version placeholder in API URL
         :param bool json: Toggle JSON parsing of response
         :param bool xml: Toggle XML parsing of response
-        :param dict g_kwargs: Any keyword arguments passed to requests
+        :param dict request_kwargs: Any keyword arguments passed to requests
         """
         endpoint = Endpoint(route, version, use_api, json, xml, request_kwargs)
 

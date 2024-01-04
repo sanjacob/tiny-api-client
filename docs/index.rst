@@ -37,6 +37,7 @@ To learn how to test your own API clients, see the :doc:`testing`.
    :caption: Contents:
 
    quick
+   typing
    testing
    api_reference
 
