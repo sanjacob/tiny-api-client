@@ -63,7 +63,7 @@ class TinyAPIClientPlugin(Plugin):
         The parameters are later retrieved in a subsequent call
         to the returned decorator.
         """
-        if len(ctx.args) > 0:
+        if len(ctx.args) and len(ctx.args[0]):
             pos = f"{ctx.context.line},{ctx.context.column}"
             route_params = []
             formatter = string.Formatter()
