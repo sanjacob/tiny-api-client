@@ -32,13 +32,15 @@ To get started, see the :ref:`basics` first.
 
 To learn how to test your own API clients, see the :doc:`testing`.
 
+To learn how to use the mypy integration, see the :doc:`typing` section.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    quick
-   typing
    testing
+   typing
    api_reference
 
 
