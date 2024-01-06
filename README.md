@@ -2,7 +2,8 @@
 
 [![License: GPL  v2][license-shield]][gnu]
 
-Write JSON API Clients in Python without the fluff, pumped full of syntactic sugar
+Write JSON API Clients in Python without the fluff, pumped full of
+syntactic sugar
 
 ```python
 from tiny_api_client import api_client, get, post, delete
@@ -24,7 +25,7 @@ class MyAPIClient:
 >>> client = MyClient()
 >>> client.find_user(user_id='PeterParker')
 {'name': 'Peter', 'surname': 'Parker', ...}
->>> client.create_note(data={'title': 'My New Note', 'content': 'Hello World!'})
+>>> client.create_note(data={'title': 'New Note', 'content': 'Hello World!'})
 {'id': ...}
 >>> client.delete_note_attachment(node_id=...)
 ```
@@ -33,7 +34,8 @@ class MyAPIClient:
 
 ## Features
 
-- Instance-scoped `requests.Session()` with connection pooling and cookie preservation
+- Instance-scoped `requests.Session()` with connection pooling and
+  cookie preservation
 - JSON is king, but XML and raw responses are fine too
 - Endpoints can use GET, POST, PUT, PATCH, DELETE
 - Route parameters are optional
@@ -44,6 +46,7 @@ class MyAPIClient:
 - Pass along any parameters you would usually pass to requests
 - Custom JSON status error handling
 - Installable [pytest plugin][pytest-plugin] for easy testing
+- Excellent support for type checking thanks to a built-in mypy plugin
 
 
 
@@ -57,7 +60,8 @@ pip install tiny-api-client
 
 ## Documentation
 
-You can find the documentation at https://tiny-api-client.readthedocs.io
+You can find the documentation at
+https://tiny-api-client.readthedocs.io
 
 
 
@@ -65,7 +69,9 @@ You can find the documentation at https://tiny-api-client.readthedocs.io
 
 [![License: LGPL  v2.1][license-shield]][gnu]
 
-This software is distributed under the [Lesser General Public License v2.1][license], more information available at the [Free Software Foundation][gnu].
+This software is distributed under the
+[Lesser General Public License v2.1][license],
+more information available at the [Free Software Foundation][gnu].
 
 
 

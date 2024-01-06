@@ -85,6 +85,7 @@ class TinyAPIClientPlugin(Plugin):
         """
         pos = f"{ctx.context.line},{ctx.context.column}"
         default_ret = ctx.default_return_type
+        # need this to access properties without a warning
         assert isinstance(default_ret, CallableType)
 
         # Modify default return type in place (probably fine)

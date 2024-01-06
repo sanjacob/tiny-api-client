@@ -20,6 +20,7 @@ flake8 = "*"
 flake8-pyproject = "*"
 pre-commit = "*"
 twine = "*"
+pytest-mypy-plugins = "*"
 
 [requires]
 python_version = "3.10"

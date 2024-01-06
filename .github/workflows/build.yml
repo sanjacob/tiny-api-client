@@ -38,7 +38,7 @@ jobs:
         run: mypy --strict tiny_api_client
 
       - name: Run test suite
-        run: pytest -vvvv
+        run: pytest --mypy-ini-file=tests/test_mypy_plugin.ini --mypy-only-local-stub -v
 
   pypi:
     runs-on: ubuntu-latest

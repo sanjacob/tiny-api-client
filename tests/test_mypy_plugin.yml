@@ -1,0 +1,64 @@
+- case: mypy_plugin_correct_route_param
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users/{user_id}')
+      def get_users(self, response: list[str]) -> list[str]:
+        return response
+
+    client = MyClient()
+    client.get_users(user_id='peterparker')
+  env:
+    - PYTHONPATH=$(pwd)/../
+
+- case: mypy_plugin_optional_route_param
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users/{user_id}')
+      def get_users(self, response: list[str]) -> list[str]:
+        return response
+
+    client = MyClient()
+    client.get_users()
+  env:
+    - PYTHONPATH=$(pwd)/../
+
+- case: mypy_plugin_wrong_route_param
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users/{user_id}')
+      def get_users(self, response: list[str]) -> list[str]:
+        return response
+
+    client = MyClient()
+    client.get_users(unknown_id='idk')
+  env:
+    - PYTHONPATH=$(pwd)/../
+  out: |
+    main:10: error: Unexpected keyword argument "unknown_id" for "get_users" of "MyClient"  [call-arg]
+
+
+- case: mypy_plugin_wrong_extra_route_param
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users/{user_id}')
+      def get_users(self, response: list[str]) -> list[str]:
+        return response
+
+    client = MyClient()
+    client.get_users(user_id='peterparker', unknown_id='idk')
+  env:
+    - PYTHONPATH=$(pwd)/../
+  out: |
+    main:10: error: Unexpected keyword argument "unknown_id" for "get_users" of "MyClient"  [call-arg]
