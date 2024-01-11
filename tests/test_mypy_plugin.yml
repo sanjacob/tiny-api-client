@@ -1,3 +1,18 @@
+- case: mypy_plugin_no_placeholders
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users')
+      def get_users(self, response: list[str]) -> list[str]:
+        return response
+
+    client = MyClient()
+    client.get_users()
+  env:
+    - PYTHONPATH=$(pwd)/../
+
 - case: mypy_plugin_correct_route_param
   main: |
     from tiny_api_client import get, api_client
@@ -12,6 +27,23 @@
     client.get_users(user_id='peterparker')
   env:
     - PYTHONPATH=$(pwd)/../
+
+
+- case: mypy_plugin_multiple_route_params
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/users/{user_id}/comments/{comment_id}')
+      def get_comment(self, response: str) -> str:
+        return response
+
+    client = MyClient()
+    client.get_comment(user_id='peterparker', comment_id='001')
+  env:
+    - PYTHONPATH=$(pwd)/../
+
 
 - case: mypy_plugin_optional_route_param
   main: |
@@ -62,3 +94,21 @@
     - PYTHONPATH=$(pwd)/../
   out: |
     main:10: error: Unexpected keyword argument "unknown_id" for "get_users" of "MyClient"  [call-arg]
+
+
+- case: mypy_plugin_non_optional_args
+  main: |
+    from tiny_api_client import get, api_client
+
+    @api_client('https://api.example.org')
+    class MyClient:
+      @get('/category/{category_id}/product/{product_id}')
+      def get_product(self, response: str) -> str:
+        return response
+
+    client = MyClient()
+    client.get_product(product_id='peterparker')
+  env:
+    - PYTHONPATH=$(pwd)/../
+  out: |
+    main:10: error: Missing named argument "category_id" for "get_product" of "MyClient"  [call-arg]

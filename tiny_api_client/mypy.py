@@ -22,12 +22,40 @@ Please activate in your mypy configuration file.
 # 02110-1301  USA
 
 import string
-from collections.abc import Callable
+from typing import NamedTuple
+from collections.abc import Callable, Iterable
 
-from mypy.nodes import ARG_NAMED_OPT, StrExpr
+from mypy.nodes import ARG_NAMED, ARG_NAMED_OPT, StrExpr
 from mypy.options import Options
 from mypy.plugin import MethodContext, Plugin
 from mypy.types import Type, CallableType
+
+
+class RouteParser:
+    formatter = string.Formatter()
+
+    class FormatTuple(NamedTuple):
+        literal_text: str | None
+        field_name: str | None
+        format_spec: str | None
+        conversion: str | None
+
+    def __init__(self, route: str):
+        parsed = self.formatter.parse(route)
+        self.params = []
+
+        for t in parsed:
+            self.params.append(self.FormatTuple(*t))
+
+    @property
+    def fields(self) -> Iterable[str]:
+        return (x.field_name for x in self.params if x.field_name is not None)
+
+    @property
+    def has_optional(self) -> bool:
+        if not len(self.params):
+            return False
+        return self.params[-1].field_name is not None
 
 
 class TinyAPIClientPlugin(Plugin):
@@ -42,7 +70,7 @@ class TinyAPIClientPlugin(Plugin):
     they were factual ones.
     """
     def __init__(self, options: Options) -> None:
-        self._ctx_cache: dict[str, list[str]] = {}
+        self._ctx_cache: dict[str, RouteParser] = {}
         super().__init__(options)
 
     def get_method_hook(self, fullname: str
@@ -65,15 +93,9 @@ class TinyAPIClientPlugin(Plugin):
         """
         if len(ctx.args) and len(ctx.args[0]):
             pos = f"{ctx.context.line},{ctx.context.column}"
-            route_params = []
-            formatter = string.Formatter()
             route = ctx.args[0][0]
             assert isinstance(route, StrExpr)
-
-            for x in formatter.parse(route.value):
-                if x[1] is not None:
-                    route_params.append(x[1])
-            self._ctx_cache[pos] = route_params
+            self._ctx_cache[pos] = RouteParser(route.value)
         return ctx.default_return_type
 
     def _decorator_callback(self, ctx: MethodContext) -> Type:
@@ -89,14 +111,17 @@ class TinyAPIClientPlugin(Plugin):
         assert isinstance(default_ret, CallableType)
 
         # Modify default return type in place (probably fine)
-        for p in self._ctx_cache[pos]:
+        route_parser = self._ctx_cache[pos]
+        for p in route_parser.fields:
             default_ret.arg_types.append(
-                # Since the URL is a string, type of arguments
-                # should also be string
+                # API endpoint URL params must be strings
                 ctx.api.named_generic_type("builtins.str", [])
             )
-            default_ret.arg_kinds.append(ARG_NAMED_OPT)
+            default_ret.arg_kinds.append(ARG_NAMED)
             default_ret.arg_names.append(p)
+
+        if route_parser.has_optional:
+            default_ret.arg_kinds[-1] = ARG_NAMED_OPT
 
         return ctx.default_return_type
 

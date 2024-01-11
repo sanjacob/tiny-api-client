@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2024-01-11
+
+### Changed
+- mypy plugin now treats most route params as required
+- mypy route parsing slightly improved
+
+## [1.2.1] - 2024-01-06
+
+### Added
+- New mypy plugin for route parameter type checking support
+
 ## [1.2.0] - 2024-01-04
 
 ### Changed

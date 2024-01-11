@@ -32,6 +32,36 @@ Therefore, errors like this will be highlighted:
    expected features. Additional requests parameters in endpoint calls
    are not supported yet.
 
+**Required and optional parameters**
+
+By design, only the last positional parameter can be optional. For instance:
+
+::
+
+        @get('/users/{user_id}/comments/{comment_id}')
+        def get_comment(self, response: dict[str, str]) -> Comment:
+            ...
+
+        client.get_comment(comment_id="...") # forgot to add user id
+
+        >>> error: Missing named argument...
+
+.. note::
+   If you want to leave the starting parameters empty, you will have to
+   explicitly pass an empty string.
+
+The parameter can only be marked optional if the route ends on that
+parameter. This implies the route cannot end in a slash, for instance.
+The endpoint below has no optional route parameters.
+
+::
+
+        @get('/users/{user_id}/comments/{comment_id}/likes')
+        def get_likes(self, response: int) -> int:
+            ...
+
+**Enabling the plugin**
+
 To enable the plugin, add this to your pyproject.toml, or check the
 `mypy_config`_ documentation if you are using a different file format.
 
