@@ -245,10 +245,15 @@ If your API can return an error code in the JSON response itself, the library
 can make use of this. You can either declare an error handler, or let the library
 throw an `APIStatusError`.
 
+.. note::
+
+        `status_handler` is called with two arguments:
+        the status code and the entire `response.json()` object.
+
 ::
 
         @api_client('https://example.org', status_key='status',
-                    status_handler=lambda x: raise MyCustomError(x))
+                    status_handler=lambda x, r: raise MyCustomError(x))
         class MyClient:
         ...
 
