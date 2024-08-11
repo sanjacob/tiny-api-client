@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2024-08-11
+
+### Changed
+- Status handler is now called with status and entire response
+
 ## [1.2.2] - 2024-01-11
 
 ### Changed
