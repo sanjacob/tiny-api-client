@@ -336,7 +336,7 @@ def test_class_decorator_parameter_status_no_handler(mock_requests, example_url)
 
 def test_class_decorator_parameter_status_handler_throws(mock_requests, example_url):
     @staticmethod
-    def throw_custom(error_code):
+    def throw_custom(error_code, response):
         raise ValueError(error_code)
 
     @api_client(example_url, status_key='custom_error',
