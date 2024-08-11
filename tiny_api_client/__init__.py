@@ -51,7 +51,7 @@ _logger.addHandler(logging.NullHandler())
 P = ParamSpec('P')
 T = TypeVar('T')
 
-APIStatusHandler = Callable[[Any], None] | None
+APIStatusHandler = Callable[[Any, Any], None] | None
 APIClient = TypeVar('APIClient', bound=type[Any])
 
 
@@ -174,7 +174,7 @@ def _handle_response(response: Any,
             _logger.warning(f"Code {status_code} from {response.url}")
 
             if status_handler is not None:
-                status_handler(status_code)
+                status_handler(status_code, endpoint_response)
             else:
                 raise APIStatusError('Server responded with an error code')
 
