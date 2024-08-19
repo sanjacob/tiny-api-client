@@ -247,21 +247,27 @@ throw an `APIStatusError`.
 
 .. note::
 
-        `status_handler` is called with two arguments:
-        the status code and the entire `response.json()` object.
+        `status_handler` is called with three arguments:
+        the client instance, the status code, and the entire
+        `response.json()` object. Use `@staticmethod` if needed.
 
 ::
 
+        @staticmethod
+        def my_handler(error_code, response):
+            raise ValueError(error_code)
+
+
         @api_client('https://example.org', status_key='status',
-                    status_handler=lambda x, r: raise MyCustomError(x))
+                    status_handler=my_handler)
         class MyClient:
-        ...
+            ...
 
         >>> client = MyClient()
         >>> client.fetch_profile() # Server response: {'status': '404'}
         Traceback (most recent call last):
             File "<stdin>", line 1, in <module>
-        MyCustomError(404)
+        ValueError(404)
 
 
 Session/Cookies
