@@ -51,7 +51,7 @@ _logger.addHandler(logging.NullHandler())
 P = ParamSpec('P')
 T = TypeVar('T')
 
-APIStatusHandler = Callable[[Any, Any], None] | None
+APIStatusHandler = Callable[[Any, Any, Any], None] | None
 APIClient = TypeVar('APIClient', bound=type[Any])
 
 

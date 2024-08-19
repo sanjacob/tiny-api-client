@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2024-08-19
+
+### Fixed
+- Type annotation of status handler to include client parameter
+
 ## [1.3.0] - 2024-08-11
 
 ### Changed
