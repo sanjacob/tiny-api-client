@@ -52,6 +52,8 @@ P = ParamSpec('P')
 T = TypeVar('T')
 
 APIStatusHandler = Callable[[Any, Any, Any], None] | None
+_StatusHandler = Callable[[Any, Any], None] | None
+
 APIClient = TypeVar('APIClient', bound=type[Any])
 
 
@@ -159,7 +161,7 @@ def _make_request(client: Any, method: str, endpoint: str,
 def _handle_response(response: Any,
                      json: bool, xml: bool,
                      status_key: str, results_key: str,
-                     status_handler: APIStatusHandler) -> Any:
+                     status_handler: _StatusHandler) -> Any:
     """Parse json or XML response after request is complete"""
     endpoint_response: Any = response
 

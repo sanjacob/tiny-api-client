@@ -249,12 +249,11 @@ throw an `APIStatusError`.
 
         `status_handler` is called with three arguments:
         the client instance, the status code, and the entire
-        `response.json()` object. Use `@staticmethod` if needed.
+        `response.json()` object.
 
 ::
 
-        @staticmethod
-        def my_handler(error_code, response):
+        def my_handler(client, error_code, response):
             raise ValueError(error_code)
 
 
