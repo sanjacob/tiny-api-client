@@ -35,6 +35,7 @@ Basic usage:
 import logging
 import requests
 import string
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
@@ -107,14 +108,9 @@ class Endpoint:
 def _format_endpoint(url: str, endpoint: str, use_api: bool,
                      positional_args: dict[str, Any]) -> str:
     """Build final endpoint URL for an API call."""
-
-    class dict_safe(dict[str, Any]):
-        """Dict subclass to replace positional endpoint parameters"""
-        def __missing__(self, key: str) -> str:
-            return ''
-
-    param_endpoint = endpoint.format_map(dict_safe(positional_args))
-    endpoint_url = f"{url}{param_endpoint}" if use_api else param_endpoint
+    param_map = defaultdict(lambda: '', positional_args)
+    route_params = endpoint.format_map(param_map)
+    endpoint_url = f"{url}{route_params}" if use_api else route_params
     return endpoint_url.rstrip('/')
 
 
