@@ -39,7 +39,9 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
+from requests.adapters import HTTPAdapter
 from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar
+from urllib3.util.retry import Retry
 from xml.etree import ElementTree
 
 __all__ = ['api_client', 'get', 'post', 'put', 'patch', 'delete']
@@ -132,6 +134,10 @@ def _make_request(client: Any, method: str, endpoint: str,
         # Create a session to reuse connections
         _logger.info("Creating new requests session")
         client.__client_session = requests.Session()
+        # Set custom adapter for retries
+        adapter = HTTPAdapter(max_retries=client.__api_max_retries)
+        client.__client_session.mount("http://", adapter)
+        client.__client_session.mount("https://", adapter)
 
     # The following assertion causes issues in testing
     # since MagicMock is not an instance of Session
@@ -219,7 +225,7 @@ def api_client_method(method: str) -> DecoratorFactory:
     directly.
 
     Basic usage:
-        >>> get = api_client_decorator('GET')
+        >>> get = api_client_method('GET')
         >>> @get("/profile/{user_id}")
         ... def fetch_profile(response):
         ...    return response
@@ -274,9 +280,11 @@ def api_client_method(method: str) -> DecoratorFactory:
 
 
 def api_client(url: str | None = None, /, *,
+               max_retries: int | Retry = 0,
                timeout: int | None = None,
                status_handler: APIStatusHandler = None,
-               status_key: str = 'status', results_key: str = 'results'
+               status_key: str = 'status',
+               results_key: str = 'results'
                ) -> Callable[[APIClient], APIClient]:
     """Annotate a class to use the api client method decorators
 
@@ -286,6 +294,7 @@ def api_client(url: str | None = None, /, *,
         ...     ...
 
     :param str url: The root URL of the API server
+    :param int max_retries: Max number of retries for network errors
     :param int timeout: Timeout for requests in seconds
     :param Callable status_handler: Error handler for status codes
     :param str status_key: Key of response that contains status codes
@@ -294,6 +303,7 @@ def api_client(url: str | None = None, /, *,
 
     def wrap(cls: APIClient) -> APIClient:
         cls._url = url
+        cls.__api_max_retries = max_retries
         cls.__api_timeout = timeout
         cls.__api_status_handler = status_handler
         cls.__api_status_key = status_key
