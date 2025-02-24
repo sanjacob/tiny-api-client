@@ -21,6 +21,7 @@ flake8-pyproject = "*"
 pre-commit = "*"
 twine = "*"
 pytest-mypy-plugins = "*"
+types-urllib3 = "*"
 
 [requires]
 python_version = "3.10"

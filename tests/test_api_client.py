@@ -14,7 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301  USA
 
 import pytest
 
@@ -182,7 +183,8 @@ def test_optional_parameter(mock_requests, example_url):
 
     client.get_my_endpoint(optional_id='MY_OPTIONAL_ID')
     get_request_fn(mock_requests).assert_called_with(
-        'GET', f'{example_url}/my-endpoint/MY_OPTIONAL_ID', timeout=None, cookies=None
+        'GET', f'{example_url}/my-endpoint/MY_OPTIONAL_ID',
+        timeout=None, cookies=None
     )
 
 
@@ -229,7 +231,7 @@ def test_extra_requests_parameter(mock_requests, example_url):
     )
 
 
-def test_extra_requests_parameter_endpoint_declaration(mock_requests, example_url):
+def test_extra_requests_parameter_endpoint(mock_requests, example_url):
     @api_client(example_url)
     class MyClient:
         @get('/my-endpoint', my_extra_param='hello world')
@@ -307,7 +309,33 @@ def test_endpoint_versions(mock_requests, example_url, example_note):
     )
 
 
-def test_class_decorator_parameter_timeout(mock_requests, example_url, example_timeout):
+def test_class_decorator_parameter_max_retries(mocker, mock_requests,
+                                               example_url):
+    mock_adapter = mocker.patch("tiny_api_client.HTTPAdapter")
+    http_adapter = mocker.Mock()
+    mock_adapter.return_value = http_adapter
+
+    @api_client(example_url, max_retries=5)
+    class MyClient:
+        @get('/my-endpoint')
+        def get_my_endpoint(self, response):
+            return response
+
+    client = MyClient()
+    client.get_my_endpoint()
+
+    mock_adapter.assert_has_calls([
+        mocker.call(max_retries=5),
+    ])
+
+    mock_requests.Session().mount.assert_has_calls([
+        mocker.call("http://", http_adapter),
+        mocker.call("https://", http_adapter)
+    ])
+
+
+def test_class_decorator_parameter_timeout(mock_requests, example_url,
+                                           example_timeout):
     @api_client(example_url, timeout=example_timeout)
     class MyClient:
         @get('/my-endpoint')
@@ -317,11 +345,13 @@ def test_class_decorator_parameter_timeout(mock_requests, example_url, example_t
     client = MyClient()
     client.get_my_endpoint()
     get_request_fn(mock_requests).assert_called_with(
-        'GET', f'{example_url}/my-endpoint', timeout=example_timeout, cookies=None
+        'GET', f'{example_url}/my-endpoint',
+        timeout=example_timeout, cookies=None
     )
 
 
-def test_class_decorator_parameter_status_no_handler(mock_requests, example_url):
+def test_class_decorator_parameter_status_no_handler(mock_requests,
+                                                     example_url):
     @api_client(example_url, status_key='custom_error')
     class MyClient:
         @get('/my-endpoint')
@@ -334,7 +364,8 @@ def test_class_decorator_parameter_status_no_handler(mock_requests, example_url)
         assert str(e.value) == '200'
 
 
-def test_class_decorator_parameter_status_handler_throws(mock_requests, example_url):
+def test_class_decorator_parameter_status_handler_throws(mock_requests,
+                                                         example_url):
     def throw_custom(client, error_code, response):
         raise ValueError(error_code)
 
