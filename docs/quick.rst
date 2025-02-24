@@ -1,3 +1,5 @@
+.. py:currentmodule:: tiny_api_client
+
 Quick Guide
 ===========
 
@@ -64,7 +66,7 @@ In its entirety, the client looks like this, short and sweet
 
 
 To pass along a request body, do so as you would normally when calling
-`requests.post`.
+:py:func:`requests.post`.
 
 ::
 
@@ -74,7 +76,7 @@ To pass along a request body, do so as you would normally when calling
 
 You can either return the JSON response directly as seen before,
 or use custom classes to parse and structure the API responses
-(for example, with pydantic)
+(for example, with :py:mod:`pydantic`)
 
 ::
 
@@ -96,9 +98,32 @@ or use custom classes to parse and structure the API responses
 Advanced
 --------
 
+- Retry mechanism for network errors
+
+You can directly set a retry policy which will be passed to the
+:py:class:`~requests.adapters.HTTPAdapter` used by the client
+:py:class:`~requests.Session`.
+For this, use either a number of attempts or a
+:py:class:`urllib3.util.retry.Retry` instance.
+
+::
+
+    @api_client('https://example.org/api', max_retries=5)
+    class MyClient:
+        ...
+
+    from urllib3.util.retry import Retry
+    policy = Retry(total=5, redirect=2)
+
+    @api_client('https://example.org/api', max_retries=policy)
+    class MyClient:
+        ...
+
+
 - Handle non-JSON data and streams
 
-The library will call `.json()` on the server response for you by default. But you can also turn this off on an endpoint basis
+The library will call `.json()` on the server response for you by default.
+But you can also turn this off on an endpoint basis
 
 
 ::
@@ -114,8 +139,8 @@ The library will call `.json()` on the server response for you by default. But y
 - Parse XML response
 
 If one of your endpoints is still using XML you can let the library parse
-the response for you with `xml.etree.ElementTree`. Note that as with JSON
-parsing, you must handle any errors produced from this.
+the response for you with :py:mod:`xml.etree.ElementTree`.
+Note that as with JSON parsing, you must handle any errors produced from this.
 
 ::
 
@@ -216,10 +241,12 @@ Error Handling
 Exceptions
 ^^^^^^^^^^
 
-The library can throw `APIEmptyResponseError` and `APIStatusError`, both of which
-are subclassed from `APIClientError`.
-Independent of this, it will not catch any error thrown by requests or the conversion
-of the response to JSON, so you will need to decide on a strategy to handle such errors.
+The library can throw :py:exc:`APIEmptyResponseError` and
+:py:exc:`APIStatusError`, both of which are subclassed from
+:py:exc:`APIClientError`.
+Independent of this, it will not catch any error thrown by requests or the
+conversion of the response to JSON, so you will need to decide on a strategy
+to handle such errors.
 
 ::
 
@@ -243,7 +270,7 @@ Status Codes
 
 If your API can return an error code in the JSON response itself, the library
 can make use of this. You can either declare an error handler, or let the library
-throw an `APIStatusError`.
+throw an :py:exc:`APIStatusError`.
 
 .. note::
 
@@ -295,7 +322,8 @@ Session/Cookies
 
 - Make a request to a different server
 
-There might come a time when you wish to make a request to a different server within the same session, without implementing your own logic
+There might come a time when you wish to make a request to a different server
+within the same session, without implementing your own logic
 
 ::
 
